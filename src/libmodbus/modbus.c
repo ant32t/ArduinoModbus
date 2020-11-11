@@ -189,6 +189,8 @@ static unsigned int compute_response_length_from_request(modbus_t *ctx, uint8_t 
 {
     int length;
     const int offset = ctx->backend->header_length;
+    const int addr = req[2] << 8 | req[3];
+    const int register_size = (addr>=7000 && addr<8000) ? 4 : 2;
 
     switch (req[offset]) {
     case MODBUS_FC_READ_COILS:
@@ -202,7 +204,7 @@ static unsigned int compute_response_length_from_request(modbus_t *ctx, uint8_t 
     case MODBUS_FC_READ_HOLDING_REGISTERS:
     case MODBUS_FC_READ_INPUT_REGISTERS:
         /* Header + 2 * nb values */
-        length = 2 + 2 * (req[offset + 3] << 8 | req[offset + 4]);
+        length = 2 + register_size  * (req[offset + 3] << 8 | req[offset + 4]);
         break;
     case MODBUS_FC_READ_EXCEPTION_STATUS:
         length = 3;
@@ -658,7 +660,7 @@ static int check_confirmation(modbus_t *ctx, uint8_t *req,
             req_nb_value = rsp_nb_value = 1;
         }
 
-        if (req_nb_value == rsp_nb_value) {
+        if (req_nb_value == rsp_nb_value || rsp_nb_value / 2 == req_nb_value) {
             rc = rsp_nb_value;
         } else {
             if (ctx->debug) {

@@ -361,7 +361,7 @@ int ModbusClient::requestFrom(int id, int type, int address, int nb)
 
   _transmissionBegun = false;
   _type = type;
-  _available = nb;
+  _available = nb * ((address >= 7000 && address < 8000) ? 2 : 1);
   _read = 0;
   _availableForWrite = 0;
   _written = 0;
